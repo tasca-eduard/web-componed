@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Shadow DOM</title>
+</head>
+
+<body>
+    <my-element-with-slot>
+        <p>This content will be projected into the slot.</p>
+    </my-element-with-slot>
+
+    <my-named-slot-element>
+        <h1 slot="header">This is the header</h1>
+        <p slot="content">This is the content.</p>
+    </my-named-slot-element>
+
+    <my-variable-element></my-variable-element>
+
+    <!-- Define the CSS variable in the light DOM -->
+    <style>
+        my-variable-element {
+            --main-color: green;
+        }
+    </style>
+
+    <my-event-element></my-event-element>
+
+    <my-composed-event-element></my-composed-event-element>
+
+    <script>
+        document.querySelector('my-composed-event-element').addEventListener('my-custom-event', () => {
+            console.log('Composed event caught in the light DOM!');
+        });
+    </script>
+
+    <script>
+        // Slots and Content Distribution: ............................................................... //
+
+        class MyElementWithSlot extends HTMLElement {
+            constructor() {
+                super();
+
+                const shadow = this.attachShadow({ mode: 'open' });
+
+                shadow.innerHTML = `
+                    <div>
+                        <hr/>
+                        <p>I am an element with slot</p>
+                        <slot></slot>    
+                        <hr/>
+                    </div>
+                `
+            }
+        }
+
+        customElements.define('my-element-with-slot', MyElementWithSlot);
+
+        class MyNamedSlotElement extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({ mode: 'open' });
+                shadow.innerHTML = `
+                    <header>
+                        <slot name="header"></slot>
+                    </header>
+                    <main>
+                        <slot name="content"></slot>
+                    </main>
+                `;
+            }
+        }
+
+        customElements.define('my-named-slot-element', MyNamedSlotElement);
+
+        // CSS Variables and Shadow DOM Interaction: ............................................................... //
+
+        class MyVariableElement extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({ mode: 'open' });
+                shadow.innerHTML = `
+                    <style>
+                        p {
+                            color: var(--main-color, blue); /* Defaults to blue if no variable is set */
+                        }
+                    </style>
+                    <p>I am using a CSS variable for color!</p>
+                `;
+            }
+        }
+
+        customElements.define('my-variable-element', MyVariableElement);
+
+        // Handling Events in the Shadow DOM: ............................................................... //
+
+        class MyEventElement extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({ mode: 'open' });
+                shadow.innerHTML = `
+                    <button>Click me</button>
+                `;
+                shadow.querySelector('button').addEventListener('click', this._handleClick);
+            }
+
+            _handleClick() {
+                console.log('Button clicked inside shadow DOM');
+            }
+        }
+
+        customElements.define('my-event-element', MyEventElement);
+
+        // Composed Events: ............................................................... //
+
+        class MyComposedEventElement extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({ mode: 'open' });
+                shadow.innerHTML = `
+                    <div>
+                        <button>Click to dispatch event</button>
+                         <my-element-with-slot>
+                            <p>Reusing custom element in another custom element</p>
+                        </my-element-with-slot>
+                    </div>
+                `;
+                shadow.querySelector('button').addEventListener('click', () => {
+                    const event = new CustomEvent('my-custom-event', {
+                        bubbles: true,
+                        composed: true
+                    });
+                    this.dispatchEvent(event);
+                });
+            }
+        }
+
+        customElements.define('my-composed-event-element', MyComposedEventElement);
+
+    </script>
+</body>
+
+</html>

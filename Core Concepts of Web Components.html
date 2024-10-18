@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core Concepts of Web Components</title>
+</head>
+
+<body>
+    <my-button></my-button>
+
+    <my-lifecycle-element></my-lifecycle-element>
+
+    <my-component myTitle="Hello this is dynamic title"></my-component>
+
+    <my-shadow-element></my-shadow-element>
+
+    <script>
+        // 2.1 Custom Elements
+
+        // Defining a Custom Element: ............................................................... //
+
+        class Mybutton extends HTMLElement {
+            constructor() {
+                // Always call super() first in the constructor.
+                super();
+                this.innerHTML = `<button>Click me</button>`;
+            }
+        }
+        customElements.define('my-button', Mybutton);
+
+        // Lifecycle Callbacks: ............................................................... //
+
+        class MyLifecycleElement extends HTMLElement {
+            constructor() {
+                super();
+                this.innerHTML = `<p>I am alive!</p>`;
+            }
+
+            connectedCallback() {
+                console.log('Element added to the DOM');
+            }
+
+            disconnectedCallback() {
+                console.log('Element removed from the DOM');
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                console.log(`Attribute: ${name} changed from ${oldValue} to ${newValue}`);
+            }
+
+            static get observedAttributes() {
+                return ['status'];
+            }
+        }
+        customElements.define('my-lifecycle-element', MyLifecycleElement);
+
+        // Attributes vs Properties ............................................................... //
+
+        class MyComponent extends HTMLElement {
+            constructor() {
+                super();
+            }
+
+            set myTitle(value) {
+                this.setAttribute('myTitle', value);
+            }
+
+            get myTitle() {
+                return this.getAttribute('myTitle');
+            }
+
+            connectedCallback() {
+                this.innerHTML = `<p>myTitle is: ${this.myTitle}</p>`
+            }
+        }
+        customElements.define('my-component', MyComponent);
+
+        // Shadow DOM ............................................................... //
+
+        class MyShadowElement extends HTMLElement {
+            constructor() {
+                super();
+
+                const shadow = this.attachShadow({ mode: 'open' });
+
+                shadow.innerHTML = `
+                    <style>
+                        p {
+                            color: red;
+                        }
+                    </style>
+                    <p>I'm inside the shadow DOM</p>
+                `;
+            }
+        }
+        customElements.define('my-shadow-element', MyShadowElement);
+    </script>
+
+
+    <!-- HTML Templates ............................................................... -->
+
+    <template id="my-template">
+        <style>
+            .text {
+                color: blue;
+            }
+        </style>
+        <p class="text">This is a template paragraph.</p>
+    </template>
+
+    <script>
+        // Access the template element
+        const template = document.getElementById('my-template');
+        const clone = template.content.cloneNode(true); // Clone the template content
+        document.body.appendChild(clone); // Append the cloned content to the DOM
+    </script>
+</body>
+
+</html>
